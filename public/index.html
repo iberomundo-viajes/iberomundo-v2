@@ -2,40 +2,50 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iberomundo Viajes - Pago Seguro</title>
-    <script src="https://js.duffel.com/v2/duffel.js"></script>
+    <script src="https://js.stripe.com/v3/"></script>
     <style>
         body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f4f7f6; }
         .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; width: 350px; }
-        h1 { color: #003366; }
-        #card-element { margin: 25px 0; min-height: 40px; }
-        #pay-button { background: #003366; color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; cursor: pointer; font-size: 16px; }
+        h1 { color: #003366; margin-bottom: 10px; }
+        .precio-info { font-size: 14px; color: #666; margin-bottom: 20px; }
+        #pay-button { background: #003366; color: white; border: none; padding: 15px; width: 100%; border-radius: 6px; cursor: pointer; font-size: 18px; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="card">
         <h1>IBEROMUNDO</h1>
         <p>Finaliza tu reserva de vuelo</p>
-        <div id="card-element"></div>
+        <p class="precio-info">Pago seguro procesado por Stripe</p>
         <button id="pay-button">PAGAR AHORA</button>
     </div>
 
     <script>
-        const duffel = new Duffel();
-        async function start() {
-            const res = await fetch('/api/create-intent', { method: 'POST' });
-            const intent = await res.json();
-            const card = duffel.elements.create('card', { clientToken: intent.client_token });
-            card.mount('#card-element');
+        // TU LLAVE REAL DE STRIPE
+        const stripe = Stripe('pk_live_51TM7bDFZrzr0pjuCRuBfJlfPGPaiwcsqymFgA9I55IjDfrw3Fb022SDo3TdJ0YdbEQqdJla11Rq5DeUaOw91vJw900QwH474pp'); 
 
-            document.getElementById('pay-button').onclick = async () => {
-                try {
-                    await duffel.confirmCardPayment(intent.client_token);
-                    alert("¡Pago exitoso! Iberomundo confirma tu reserva.");
-                } catch (e) { alert("Error: " + e.message); }
-            };
-        }
-        start();
+        document.getElementById('pay-button').onclick = async () => {
+            try {
+                const response = await fetch('/api/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        flightPrice: "500", // El precio base
+                        flightName: "Vuelo Iberomundo"
+                    })
+                });
+
+                const session = await response.json();
+                if (session.id) {
+                    await stripe.redirectToCheckout({ sessionId: session.id });
+                } else {
+                    alert("Error en la sesión de pago.");
+                }
+            } catch (error) {
+                alert("Hubo un error al conectar con Stripe.");
+            }
+        };
     </script>
 </body>
 </html>
