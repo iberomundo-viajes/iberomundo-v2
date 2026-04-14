@@ -20,15 +20,10 @@ app.post('/api/create-checkout-session', async (req, res) => {
       payment_method_types: ['card'],
       line_items: [
         {
-          price_data: {
-            currency: 'eur',
-            product_data: {
-              name: `Vuelo: ${flightName || 'Reserva Iberomundo'}`,
-            },
-            unit_amount: totalConComision,
-          },
+          price: process.env.STRIPE_PRICE_ID,
           quantity: 1,
         },
+      ],
       ],
       mode: 'payment',
       success_url: `${req.headers.origin}/success.html`,
