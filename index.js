@@ -18,12 +18,11 @@ app.post('/api/create-checkout-session', async (req, res) => {
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
-      line_items: [
+       line_items: [
         {
           price: process.env.STRIPE_PRICE_ID,
           quantity: 1,
         },
-      ],
       ],
       mode: 'payment',
       success_url: `${req.headers.origin}/success.html`,
